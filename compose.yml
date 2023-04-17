@@ -1,4 +1,7 @@
 version: "3.8"
+name: kthcloud-status
 services: 
-  - name: kthcloud-status
-    build: .
+    kthcloud-status-server:
+      name: kthcloud-status-server
+      build: "."
+      restart: always
