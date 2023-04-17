@@ -1,3 +1,4 @@
 .env
 clientcred.secret
 usercred.secret
+deploy.sh
