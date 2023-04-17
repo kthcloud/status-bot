@@ -70,12 +70,12 @@ def main():
             if check_endpoint(endpoint):
                 print(f"{endpoint[0]} is up" , file=sys.stderr)
                 if endpoint[0] in down:
-                    m.toot(f"{endpoint[1]} is back up as of {now.strftime('%Y-%m-%d %H:%M:%S')}. {endpoint[1]}")
+                    m.toot(f"{endpoint[1]} is back up as of {now.strftime('%Y-%m-%d %H:%M:%S')}. {endpoint[0]}")
                     down.remove(endpoint[0])
             else:
                 print(f"{endpoint[0]} is down" , file=sys.stderr)
                 if endpoint[0] not in down:
-                    m.toot(f"{endpoint[1]} is down as of {now.strftime('%Y-%m-%d %H:%M:%S')}. {endpoint[1]}")
+                    m.toot(f"{endpoint[1]} is down as of {now.strftime('%Y-%m-%d %H:%M:%S')}. {endpoint[0]}")
                     down.append(endpoint[0])
 
         print("sleeping..." , file=sys.stderr)
