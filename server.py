@@ -38,6 +38,8 @@ def main():
 
     m = Mastodon(access_token="usercred.secret", session=session)
 
+    print("Login successful")
+
     ## import endpoints from endpoints.csv, skip header
     endpoints = []
     with open("endpoints.csv", "r") as f:
@@ -45,6 +47,8 @@ def main():
             endpoints.append(line.strip().split(","))
     endpoints = endpoints[1:]
 
+    print(f'Imported {len(endpoints)} endpoints')
+    
     down = []
 
     last_summary = datetime.datetime.now()
