@@ -48,7 +48,7 @@ def main():
     endpoints = endpoints[1:]
 
     print(f'Imported {len(endpoints)} endpoints')
-    
+
     down = []
 
     last_summary = datetime.datetime.now()
@@ -73,8 +73,9 @@ def main():
                     down.remove(endpoint[0])
             else:
                 print(f"{endpoint[0]} is down")
-                m.toot(f"{endpoint[1]} is down as of {now.strftime('%Y-%m-%d %H:%M:%S')}. {endpoint[1]}")
-                down.append(endpoint[0])
+                if endpoint[0] not in down:
+                    m.toot(f"{endpoint[1]} is down as of {now.strftime('%Y-%m-%d %H:%M:%S')}. {endpoint[1]}")
+                    down.append(endpoint[0])
 
         print("sleeping...")
         
