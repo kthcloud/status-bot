@@ -4,6 +4,7 @@ import os
 from dotenv import load_dotenv
 import datetime
 import time 
+import sys
 
 load_dotenv()
 
@@ -38,7 +39,7 @@ def main():
 
     m = Mastodon(access_token="usercred.secret", session=session)
 
-    print("Login successful")
+    print("Login successful", file=sys.stderr)
 
     ## import endpoints from endpoints.csv, skip header
     endpoints = []
@@ -47,7 +48,7 @@ def main():
             endpoints.append(line.strip().split(","))
     endpoints = endpoints[1:]
 
-    print(f'Imported {len(endpoints)} endpoints')
+    print(f'Imported {len(endpoints)} endpoints', file=sys.stderr)
 
     down = []
 
@@ -56,7 +57,7 @@ def main():
     while True:
         ## get current time
         now = datetime.datetime.now()
-        print(now.strftime('%Y-%m-%d %H:%M:%S'))
+        print(now.strftime('%Y-%m-%d %H:%M:%S'), file=sys.stderr)
 
         ## send summary if it's been 24 hours 
         if (now - last_summary).total_seconds() > 86400:
@@ -67,17 +68,17 @@ def main():
         for endpoint in endpoints:
 
             if check_endpoint(endpoint):
-                print(f"{endpoint[0]} is up")
+                print(f"{endpoint[0]} is up" , file=sys.stderr)
                 if endpoint[0] in down:
                     m.toot(f"{endpoint[1]} is back up as of {now.strftime('%Y-%m-%d %H:%M:%S')}. {endpoint[1]}")
                     down.remove(endpoint[0])
             else:
-                print(f"{endpoint[0]} is down")
+                print(f"{endpoint[0]} is down" , file=sys.stderr)
                 if endpoint[0] not in down:
                     m.toot(f"{endpoint[1]} is down as of {now.strftime('%Y-%m-%d %H:%M:%S')}. {endpoint[1]}")
                     down.append(endpoint[0])
 
-        print("sleeping...")
+        print("sleeping..." , file=sys.stderr)
         
         ## sleep 15 minutes
         time.sleep(900)
