@@ -1,7 +1,6 @@
-version: "3.8"
-name: kthcloud-status
+version: '3.8'
 services: 
     kthcloud-status-server:
-      name: kthcloud-status-server
+      container_name: kthcloud-status-server
       build: "."
       restart: always
