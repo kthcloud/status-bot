@@ -7,6 +7,9 @@ import time
 import sys
 
 load_dotenv()
+os.environ['TZ'] = 'Europe/Stockholm'
+time.tzset()
+
 
 
 def check_endpoint(endpoint):
