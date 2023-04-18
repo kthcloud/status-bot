@@ -57,6 +57,7 @@ def main():
         if os.path.exists("lastupdate"):
             with open("lastupdate", "r") as f:
                 last_summary = datetime.datetime.strptime(f.read(), '%Y-%m-%d %H:%M:%S')
+                print(f"Last summary: {last_summary.strftime('%Y-%m-%d %H:%M:%S')}", file=sys.stderr)
         else:
             last_summary = datetime.datetime.now()
 
@@ -67,6 +68,7 @@ def main():
         ## send summary if it's been 24 hours 
         if (now - last_summary).total_seconds() > 86400:
             last_summary = now
+            print("Sending summary", file=sys.stderr)
             if len(down) == 0:
                 m.toot(f"Summary as of {now.strftime('%Y-%m-%d')}. All endpoints up 🌞")
             else:
