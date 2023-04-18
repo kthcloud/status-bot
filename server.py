@@ -52,9 +52,14 @@ def main():
 
     down = []
 
-    last_summary = datetime.datetime.now()
-
     while True:
+        ## check if last_summary file exists
+        if os.path.exists("lastupdate"):
+            with open("lastupdate", "r") as f:
+                last_summary = datetime.datetime.strptime(f.read(), '%Y-%m-%d %H:%M:%S')
+        else:
+            last_summary = datetime.datetime.now()
+
         ## get current time
         now = datetime.datetime.now()
         print(now.strftime('%Y-%m-%d %H:%M:%S'), file=sys.stderr)
@@ -62,7 +67,15 @@ def main():
         ## send summary if it's been 24 hours 
         if (now - last_summary).total_seconds() > 86400:
             last_summary = now
-            m.toot(f"Summary as of {now.strftime('%Y-%m-%d %H:%M:%S')}. {len(down)} endpoints down: {down}")
+            if len(down) == 0:
+                m.toot(f"Summary as of {now.strftime('%Y-%m-%d')}. All endpoints up 🌞")
+            else:
+                m.toot(f"Summary as of {now.strftime('%Y-%m-%d')}. {len(down)} endpoints down: {down}")
+            
+            ## save last_summary to file
+            with open("lastupdate", "w") as f:
+                f.write(last_summary.strftime('%Y-%m-%d %H:%M:%S'))
+            
     
         ## check endpoints
         for endpoint in endpoints:
@@ -70,18 +83,18 @@ def main():
             if check_endpoint(endpoint):
                 print(f"{endpoint[0]} is up" , file=sys.stderr)
                 if endpoint[0] in down:
-                    m.toot(f"{endpoint[1]} is back up as of {now.strftime('%Y-%m-%d %H:%M:%S')}. {endpoint[0]}")
+                    m.toot(f"{endpoint[1]} is back up as of {now.strftime('%Y-%m-%d %H:%M:%S')} 🛠️ {endpoint[0]}")
                     down.remove(endpoint[0])
             else:
                 print(f"{endpoint[0]} is down" , file=sys.stderr)
                 if endpoint[0] not in down:
-                    m.toot(f"{endpoint[1]} is down as of {now.strftime('%Y-%m-%d %H:%M:%S')}. {endpoint[0]}")
+                    m.toot(f"{endpoint[1]} is down as of {now.strftime('%Y-%m-%d %H:%M:%S')} 💔 {endpoint[0]}")
                     down.append(endpoint[0])
 
         print("sleeping..." , file=sys.stderr)
         
         ## sleep 15 minutes
-        time.sleep(900)
+        time.sleep(300)
 
 ## main
 if __name__ == "__main__":
