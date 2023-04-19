@@ -16,6 +16,7 @@ time.tzset()
 def check_endpoint(endpoint):
     tries = 0
     while tries < 3:
+        time.sleep(1)
         try:
             r = requests.get(endpoint[0], timeout=5)
             if r.status_code == 200:
@@ -101,8 +102,8 @@ def main():
 
         print("sleeping..." , file=sys.stderr)
         
-        ## sleep 15 minutes
-        time.sleep(300)
+        ## sleep 1 minute
+        time.sleep(60)
 
 ## main
 if __name__ == "__main__":
