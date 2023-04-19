@@ -12,16 +12,19 @@ time.tzset()
 
 
 
+# Allow up to 3 retries
 def check_endpoint(endpoint):
-    try:
-        r = requests.get(endpoint[0], timeout=5)
-        if r.status_code == 200:
-            return True
-        else:
-            return False
-    except:
-        return False
-
+    tries = 0
+    while tries < 3:
+        try:
+            r = requests.get(endpoint[0], timeout=5)
+            if r.status_code == 200:
+                return True
+            else:
+                tries += 1
+        except:
+            tries += 1
+    return False
 
 def main():
     session = requests.Session()
