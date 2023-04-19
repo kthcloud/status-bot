@@ -5,12 +5,32 @@ from dotenv import load_dotenv
 import datetime
 import time 
 import sys
+import openai
 
 load_dotenv()
 os.environ['TZ'] = 'Europe/Stockholm'
 time.tzset()
 
+testing = os.getenv("env") == "test"
 
+# Login to Mastodon
+session = requests.Session()
+session.verify = False
+m = Mastodon(
+    client_id="clientcred.secret",
+    session=session,
+)
+m.log_in(
+    os.getenv("email"),
+    password=os.getenv("password"),
+    to_file="usercred.secret"
+)
+m = Mastodon(access_token="usercred.secret", session=session)
+print("Login successful", file=sys.stderr)
+
+# Login to OpenAI
+openai.organization = os.getenv("openai_org")
+openai.api_key = os.getenv("openai_secret")
 
 # Allow up to 3 retries
 def check_endpoint(endpoint):
@@ -27,26 +47,23 @@ def check_endpoint(endpoint):
             tries += 1
     return False
 
+
+def toot(message):
+
+    if os.getenv("openai_enabled") == "true":
+        # Use OpenAI to generate a toot based on the message
+        response = openai.Completion.create(
+            engine="gpt-4",
+            prompt="You are the mastodon status bot for kthcloud, a cloud provider by students for students. Please rewrite the following message in a creative and funny way. make sure to include the link: " + message,
+        )
+        message = response["choices"][0]["text"]
+
+    if testing:
+        print(message, file=sys.stderr)
+    else:
+        m.toot(message)
+
 def main():
-    session = requests.Session()
-    session.verify = False
-
-    # Authenticate the app
-    m = Mastodon(
-        client_id="clientcred.secret",
-        session=session,
-    )
-
-    # Login as a user (with Password)
-    m.log_in(
-        os.getenv("email"),
-        password=os.getenv("password"),
-        to_file="usercred.secret"
-    )
-
-    m = Mastodon(access_token="usercred.secret", session=session)
-
-    print("Login successful", file=sys.stderr)
 
     ## import endpoints from endpoints.csv, skip header
     endpoints = []
@@ -77,9 +94,9 @@ def main():
             last_summary = now
             print("Sending summary", file=sys.stderr)
             if len(down) == 0:
-                m.toot(f"Summary as of {now.strftime('%Y-%m-%d')}. All endpoints up 🌞")
+                toot(f"Summary as of {now.strftime('%Y-%m-%d')}. All endpoints up 🌞")
             else:
-                m.toot(f"Summary as of {now.strftime('%Y-%m-%d')}. {len(down)} endpoints down: {down}")
+                toot(f"Summary as of {now.strftime('%Y-%m-%d')}. {len(down)} endpoints down: {down}")
             
             ## save last_summary to file
             with open("lastupdate", "w") as f:
@@ -88,16 +105,15 @@ def main():
     
         ## check endpoints
         for endpoint in endpoints:
-
             if check_endpoint(endpoint):
                 print(f"{endpoint[0]} is up" , file=sys.stderr)
                 if endpoint[0] in down:
-                    m.toot(f"{endpoint[1]} is back up as of {now.strftime('%Y-%m-%d %H:%M:%S')} 🛠️ {endpoint[0]}")
+                    toot(f"{endpoint[1]} is back up as of {now.strftime('%Y-%m-%d %H:%M:%S')} 🛠️ {endpoint[0]}")
                     down.remove(endpoint[0])
             else:
                 print(f"{endpoint[0]} is down" , file=sys.stderr)
                 if endpoint[0] not in down:
-                    m.toot(f"{endpoint[1]} is down as of {now.strftime('%Y-%m-%d %H:%M:%S')} 💔 {endpoint[0]}")
+                    toot(f"{endpoint[1]} is down as of {now.strftime('%Y-%m-%d %H:%M:%S')} 💔 {endpoint[0]}")
                     down.append(endpoint[0])
 
         print("sleeping..." , file=sys.stderr)
