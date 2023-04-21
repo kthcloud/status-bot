@@ -52,11 +52,17 @@ def toot(message):
 
     if os.getenv("openai_enabled") == "true":
         # Use OpenAI to generate a toot based on the message
-        response = openai.Completion.create(
-            engine="gpt-4",
-            prompt="You are the mastodon status bot for kthcloud, a cloud provider by students for students. Please rewrite the following message in a creative and funny way. make sure to include the link: " + message,
-        )
-        message = response["choices"][0]["text"]
+
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                    {"role": "system", "content": "You are the mastodon status bot for kthcloud, a cloud provider by students for students. Please rewrite the following message in a creative and funny way. make sure to include the link if provided. Do not change the date."},
+                    {"role": "assistant", "content": message},
+                ]
+            )
+        
+        message = response["choices"][0]["message"]["content"]
+
 
     if testing:
         print(message, file=sys.stderr)
