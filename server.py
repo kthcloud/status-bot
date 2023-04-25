@@ -48,15 +48,19 @@ def check_endpoint(endpoint):
     return False
 
 
-def toot(message):
+def toot(message, mode="alert"):
 
     if os.getenv("openai_enabled") == "true":
         # Use OpenAI to generate a toot based on the message
 
+        sys_message = "You are the mastodon status bot for kthcloud, a cloud provider by students for students. Please rewrite the following message in a creative and funny way. make sure to include the link. Do not change the date."
+        if mode == "update":
+            sys_message = "You are the mastodon status bot for kthcloud, a cloud provider by students for students. Please rewrite the following message in a creative and funny way. Do not change the date."
+
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[
-                    {"role": "system", "content": "You are the mastodon status bot for kthcloud, a cloud provider by students for students. Please rewrite the following message in a creative and funny way. make sure to include the link if provided. Do not change the date."},
+                    {"role": "system", "content": sys_message},
                     {"role": "assistant", "content": message},
                 ]
             )
@@ -100,9 +104,9 @@ def main():
             last_summary = now
             print("Sending summary", file=sys.stderr)
             if len(down) == 0:
-                toot(f"Summary as of {now.strftime('%Y-%m-%d')}. All endpoints up 🌞")
+                toot(f"Summary as of {now.strftime('%Y-%m-%d')}. All endpoints up 🌞", mode="update")
             else:
-                toot(f"Summary as of {now.strftime('%Y-%m-%d')}. {len(down)} endpoints down: {down}")
+                toot(f"Summary as of {now.strftime('%Y-%m-%d')}. {len(down)} endpoints down: {down}", mode="update")
             
             ## save last_summary to file
             with open("lastupdate", "w") as f:
