@@ -76,7 +76,7 @@ def toot(message, mode="alert"):
 
 def bio(down, endpoints):
     bio_msg = "Stay informed on maintenance and outages of our free and open source cloud service, run by students.\nStatus:"
-    down_msg = "All systems operational."
+    down_msg = "🟢 All systems operational."
     if len(down) > 0 and len(down) < 3:
         bio_msg = "⚠️ Some services down: " + ", ".join(down) 
     elif len(down) == len(endpoints):
