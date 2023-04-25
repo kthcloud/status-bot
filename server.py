@@ -73,6 +73,22 @@ def toot(message, mode="alert"):
     else:
         m.toot(message)
 
+
+def bio(down, endpoints):
+    bio_msg = "Stay informed on maintenance and outages of our free and open source cloud service, run by students.\nStatus:"
+    down_msg = "All systems operational."
+    if len(down) > 0 and len(down) < 3:
+        bio_msg = "⚠️ Some services down: " + ", ".join(down) 
+    elif len(down) == len(endpoints):
+        down_msg = "❌ Major outage. All services are currently down."
+    elif len(down) > 0:
+        down_msg = f"{len(down)} services are currently down."
+
+    if testing:
+        print(f"UPDATING BIO:\n{bio_msg} {down_msg}", file=sys.stderr)
+    else:
+        m.account_update_credentials(note=f"{bio_msg} {down_msg}")
+
 def main():
 
     ## import endpoints from endpoints.csv, skip header
@@ -127,6 +143,8 @@ def main():
                     down.append(endpoint[0])
 
         print("sleeping..." , file=sys.stderr)
+
+        bio(down, endpoints)
         
         ## sleep 1 minute
         time.sleep(60)
