@@ -35,8 +35,8 @@ openai.api_key = os.getenv("openai_secret")
 # Allow up to 3 retries
 def check_endpoint(endpoint):
     tries = 0
-    while tries < 3:
-        time.sleep(1)
+    while tries < 5:
+        time.sleep(60)
         try:
             r = requests.get(endpoint[0], timeout=5)
             if r.status_code == 200:
@@ -53,9 +53,9 @@ def toot(message, mode="alert"):
     if os.getenv("openai_enabled") == "true":
         # Use OpenAI to generate a toot based on the message
 
-        sys_message = "You are the mastodon status bot for kthcloud, a cloud provider by students for students. Please rewrite the following message in a creative and funny way. make sure to include the link. Do not change the date."
+        sys_message = "You are the mastodon status bot for kthcloud, a cloud provider by students for students. Please rewrite the following message in a creative and funny way. make sure to include the link. Do not change the date. make sure to include the date."
         if mode == "update":
-            sys_message = "You are the mastodon status bot for kthcloud, a cloud provider by students for students. Please rewrite the following message in a creative and funny way. Do not change the date."
+            sys_message = "You are the mastodon status bot for kthcloud, a cloud provider by students for students. Please rewrite the following message in a creative and funny way. Do not change the date. make sure to include the date"
 
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
