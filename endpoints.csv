@@ -4,9 +4,8 @@ https://dashboard.cloud.cbh.kth.se, CloudStack dashboard
 https://k8s.cloud.cbh.kth.se, Kubernetes dashboard internal
 https://k8s.prod.cloud.cbh.kth.se, Kubernetes dashboard production
 https://k8s.dev.cloud.cbh.kth.se, Kubernetes dashboard development
-https://proxy.cloud.cbh.kth.se, Nginx proxy internal
-https://proxy.prod.cloud.cbh.kth.se, Nginx proxy production
-https://proxy.dev.cloud.cbh.kth.se, Nginx proxy development
+https://prod.cloud.cbh.kth.se, Production cluster ingress controller
+https://dev.cloud.cbh.kth.se, Dev cluster ingress controller
 https://iam.cloud.cbh.kth.se, Keycloak
 https://dns.cloud.cbh.kth.se, PowerDNS
 https://maas.cloud.cbh.kth.se, MAAS
