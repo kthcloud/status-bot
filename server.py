@@ -7,11 +7,15 @@ import time
 import sys
 import openai
 
+print("Starting server", file=sys.stderr)
+
 load_dotenv()
 os.environ['TZ'] = 'Europe/Stockholm'
 time.tzset()
+print(f"Timezone: {time.tzname}", file=sys.stderr)
 
 testing = os.getenv("env") == "test"
+print(f"Testing: {testing}", file=sys.stderr)
 
 # Login to Mastodon
 session = requests.Session()
@@ -50,6 +54,7 @@ def check_endpoint(endpoint):
 
 def toot(message, mode="alert"):
 
+
     if os.getenv("openai_enabled") == "true":
         # Use OpenAI to generate a toot based on the message
 
@@ -57,21 +62,25 @@ def toot(message, mode="alert"):
         if mode == "update":
             sys_message = "You are the mastodon status bot for kthcloud, a cloud provider by students for students. Please rewrite the following message in a creative and funny way. Do not change the date. make sure to include the date"
 
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                    {"role": "system", "content": sys_message},
-                    {"role": "assistant", "content": message},
-                ]
-            )
+        res = requests.post("https://llama.app.cloud.cbh.kth.se/completion", json={"prompt": sys_message + " " + message})
+        json = res.json()
+        res_message = json["content"]
+
+        # response = openai.ChatCompletion.create(
+        #     model="gpt-3.5-turbo",
+        #     messages=[
+        #             {"role": "system", "content": sys_message},
+        #             {"role": "assistant", "content": message},
+        #         ]
+        #     )
         
-        message = response["choices"][0]["message"]["content"]
+        # message = response["choices"][0]["message"]["content"]
 
 
     if testing:
-        print(message, file=sys.stderr)
+        print(res_message, file=sys.stderr)
     else:
-        m.toot(message)
+        m.toot(res_message)
 
 
 def bio(down, endpoints):
