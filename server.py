@@ -64,7 +64,7 @@ def toot(message, mode="alert"):
 
         res = requests.post("https://llama.app.cloud.cbh.kth.se/completion", json={"prompt": sys_message + " " + message})
         json = res.json()
-        res_message = json["content"]
+        message = json["content"]
 
         # response = openai.ChatCompletion.create(
         #     model="gpt-3.5-turbo",
@@ -78,9 +78,9 @@ def toot(message, mode="alert"):
 
 
     if testing:
-        print(res_message, file=sys.stderr)
+        print(message, file=sys.stderr)
     else:
-        m.toot(res_message)
+        m.toot(message)
 
 
 def bio(down, endpoints):
