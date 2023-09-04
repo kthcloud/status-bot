@@ -62,7 +62,7 @@ def toot(message, mode="alert"):
         if mode == "update":
             sys_message = "You are the mastodon status bot for kthcloud, a cloud provider by students for students. Please rewrite the following message in a creative and funny way. Do not change the date. make sure to include the date"
 
-        res = requests.post("https://llama.app.cloud.cbh.kth.se/completion", json={"prompt": sys_message + " " + message})
+        res = requests.post("https://llama.app.cloud.cbh.kth.se/completion", json={"prompt": sys_message + "Message: \"" + message + "\"\n\n\nllama:" })
         json = res.json()
         message = json["content"]
 
