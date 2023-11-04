@@ -3,7 +3,7 @@ from mastodon import Mastodon
 import os
 from dotenv import load_dotenv
 import datetime
-import time 
+import time
 import sys
 import openai
 
@@ -18,18 +18,13 @@ testing = os.getenv("env") == "test"
 print(f"Testing: {testing}", file=sys.stderr)
 
 # Login to Mastodon
-session = requests.Session()
-session.verify = False
-m = Mastodon(
-    client_id="clientcred.secret",
-    session=session,
-)
+m = Mastodon(client_id="clientcred.secret")
 m.log_in(
     os.getenv("email"),
     password=os.getenv("password"),
     to_file="usercred.secret"
 )
-m = Mastodon(access_token="usercred.secret", session=session)
+m = Mastodon(access_token="usercred.secret")
 print("Login successful", file=sys.stderr)
 
 # Login to OpenAI
@@ -54,28 +49,33 @@ def check_endpoint(endpoint):
 
 def toot(message, mode="alert"):
 
-
     if os.getenv("openai_enabled") == "true":
-        # Use OpenAI to generate a toot based on the message
 
-        sys_message = "You are the mastodon status bot for kthcloud, a cloud provider by students for students. Please rewrite the following message in a creative and funny way. make sure to include the link. Do not change the date. make sure to include the date."
-        if mode == "update":
-            sys_message = "You are the mastodon status bot for kthcloud, a cloud provider by students for students. Please rewrite the following message in a creative and funny way. Do not change the date. make sure to include the date"
+        # test if llama is up, otherwise use gpt-3
 
-        res = requests.post("https://llama.app.cloud.cbh.kth.se/completion", json={"prompt": sys_message + "Message: \"" + message + "\"\n\n\nllama:" })
-        json = res.json()
-        message = json["content"]
+        try:
+            # Use llama to generate a toot based on the message
+            sys_message = "You are the mastodon status bot for kthcloud, a cloud provider by students for students. Please rewrite the following message in a creative and funny way. make sure to include the link. Do not change the date. make sure to include the date."
+            if mode == "update":
+                sys_message = "You are the mastodon status bot for kthcloud, a cloud provider by students for students. Please rewrite the following message in a creative and funny way. Do not change the date. make sure to include the date"
 
-        # response = openai.ChatCompletion.create(
-        #     model="gpt-3.5-turbo",
-        #     messages=[
-        #             {"role": "system", "content": sys_message},
-        #             {"role": "assistant", "content": message},
-        #         ]
-        #     )
-        
-        # message = response["choices"][0]["message"]["content"]
+            res = requests.post("https://llama.app.cloud.cbh.kth.se/completion", json={
+                                "prompt": sys_message + "Message: \"" + message + "\"\n\n\nllama:"})
+            json = res.json()
+            message = json["content"]
+            print(f"llama: {message}", file=sys.stderr)
+        except:
+            print("llama is down", file=sys.stderr)
+            # Use openai to generate a toot based on the message
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": sys_message},
+                    {"role": "assistant", "content": message},
+                ]
+            )
 
+            message = response["choices"][0]["message"]["content"]
 
     if testing:
         print(message, file=sys.stderr)
@@ -87,7 +87,7 @@ def bio(down, endpoints):
     bio_msg = "Stay informed on maintenance and outages of our free and open source cloud service, run by students.\nStatus:"
     down_msg = "🟢 All systems operational."
     if len(down) > 0 and len(down) < 3:
-        down_msg = "⚠️ Some services down: " + ", ".join(down) 
+        down_msg = "⚠️ Some services down: " + ", ".join(down)
     elif len(down) == len(endpoints):
         down_msg = "❌ Major outage. All services are currently down."
     elif len(down) > 0:
@@ -98,66 +98,82 @@ def bio(down, endpoints):
     else:
         m.account_update_credentials(note=f"{bio_msg} {down_msg}")
 
-def main():
 
-    ## import endpoints from endpoints.csv, skip header
+def get_last_summary():
+    if os.path.exists("lastupdate"):
+        with open("lastupdate", "r") as f:
+            last_summary = datetime.datetime.strptime(
+                f.read(), '%Y-%m-%d %H:%M:%S')
+            print(
+                f"Last summary: {last_summary.strftime('%Y-%m-%d %H:%M:%S')}", file=sys.stderr)
+    else:
+        last_summary = datetime.datetime.now()
+    return last_summary
+
+
+def get_endpoints():
     endpoints = []
     with open("endpoints.csv", "r") as f:
         for line in f:
             endpoints.append(line.strip().split(","))
     endpoints = endpoints[1:]
+    return endpoints
+
+
+def main():
+
+    # import endpoints from endpoints.csv, skip header
+    endpoints = get_endpoints()
 
     print(f'Imported {len(endpoints)} endpoints', file=sys.stderr)
 
     down = []
 
     while True:
-        ## check if last_summary file exists
-        if os.path.exists("lastupdate"):
-            with open("lastupdate", "r") as f:
-                last_summary = datetime.datetime.strptime(f.read(), '%Y-%m-%d %H:%M:%S')
-                print(f"Last summary: {last_summary.strftime('%Y-%m-%d %H:%M:%S')}", file=sys.stderr)
-        else:
-            last_summary = datetime.datetime.now()
+        last_summary = get_last_summary()
 
-        ## get current time
+        # get current time
         now = datetime.datetime.now()
         print(now.strftime('%Y-%m-%d %H:%M:%S'), file=sys.stderr)
 
-        ## send summary if it's been 24 hours 
+        # send summary if it's been 24 hours
         if (now - last_summary).total_seconds() > 86400:
             last_summary = now
             print("Sending summary", file=sys.stderr)
             if len(down) == 0:
-                toot(f"Summary as of {now.strftime('%Y-%m-%d')}. All endpoints up 🌞", mode="update")
+                toot(
+                    f"Summary as of {now.strftime('%Y-%m-%d')}. All endpoints up 🌞", mode="update")
             else:
-                toot(f"Summary as of {now.strftime('%Y-%m-%d')}. {len(down)} endpoints down: {down}", mode="update")
-            
-            ## save last_summary to file
+                toot(
+                    f"Summary as of {now.strftime('%Y-%m-%d')}. {len(down)} endpoints down: {down}", mode="update")
+
+            # save last_summary to file
             with open("lastupdate", "w") as f:
                 f.write(last_summary.strftime('%Y-%m-%d %H:%M:%S'))
-            
-    
-        ## check endpoints
+
+        # check endpoints
         for endpoint in endpoints:
             if check_endpoint(endpoint):
-                print(f"{endpoint[0]} is up" , file=sys.stderr)
+                print(f"{endpoint[0]} is up", file=sys.stderr)
                 if endpoint[0] in down:
-                    toot(f"{endpoint[1]} is back up as of {now.strftime('%Y-%m-%d %H:%M:%S')} 🛠️ {endpoint[0]}")
+                    toot(
+                        f"{endpoint[1]} is back up as of {now.strftime('%Y-%m-%d %H:%M:%S')} 🛠️ {endpoint[0]}")
                     down.remove(endpoint[0])
             else:
-                print(f"{endpoint[0]} is down" , file=sys.stderr)
+                print(f"{endpoint[0]} is down", file=sys.stderr)
                 if endpoint[0] not in down:
-                    toot(f"{endpoint[1]} is down as of {now.strftime('%Y-%m-%d %H:%M:%S')} 💔 {endpoint[0]}")
+                    toot(
+                        f"{endpoint[1]} is down as of {now.strftime('%Y-%m-%d %H:%M:%S')} 💔 {endpoint[0]}")
                     down.append(endpoint[0])
 
-        print("sleeping..." , file=sys.stderr)
+        print("sleeping...", file=sys.stderr)
 
         bio(down, endpoints)
-        
-        ## sleep 1 minute
+
+        # sleep 1 minute
         time.sleep(60)
 
-## main
+
+# main
 if __name__ == "__main__":
     main()
