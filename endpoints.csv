@@ -9,3 +9,4 @@ https://dns.cloud.cbh.kth.se, kthcloud DNS server
 https://maas.cloud.cbh.kth.se, MAAS
 https://taiga.prod.cloud.cbh.kth.se, Taiga
 https://llama.app.cloud.cbh.kth.se/, llama2
+https://registry.cloud.cbh.kth.se/, Docker registry
