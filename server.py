@@ -6,6 +6,7 @@ import datetime
 import time
 import sys
 import openai
+import bsky
 
 print("Starting server", file=sys.stderr)
 
@@ -20,8 +21,8 @@ print(f"Testing: {testing}", file=sys.stderr)
 # Login to Mastodon
 m = Mastodon(client_id="clientcred.secret")
 m.log_in(
-    os.getenv("email"),
-    password=os.getenv("password"),
+    os.getenv("mastodon_user"),
+    password=os.getenv("mastodon_password"),
     to_file="usercred.secret"
 )
 m = Mastodon(access_token="usercred.secret")
@@ -50,9 +51,7 @@ def check_endpoint(endpoint):
 def toot(message, mode="alert"):
 
     if os.getenv("openai_enabled") == "true":
-
         # test if llama is up, otherwise use gpt-3
-
         try:
             # Use llama to generate a toot based on the message
             sys_message = "You are the mastodon status bot for kthcloud, a cloud provider by students for students. Please rewrite the following message in a creative and funny way. make sure to include the link. Do not change the date. make sure to include the date."
@@ -81,6 +80,7 @@ def toot(message, mode="alert"):
         print(message, file=sys.stderr)
     else:
         m.toot(message)
+        bsky.toot(message)
 
 
 def bio(down, endpoints):
@@ -143,6 +143,7 @@ def main():
             if len(down) == 0:
                 toot(
                     f"Summary as of {now.strftime('%Y-%m-%d')}. All endpoints up 🌞", mode="update")
+                
             else:
                 toot(
                     f"Summary as of {now.strftime('%Y-%m-%d')}. {len(down)} endpoints down: {down}", mode="update")
