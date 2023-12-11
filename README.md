@@ -1,5 +1,9 @@
 # status-bot
-Mastodon status bot for kthcloud
+Mastodon & Bluesky status bot for kthcloud
+
+## Links
+https://mastodon.social/@kthcloud
+https://bsky.app/profile/cloud.cbh.kth.se
 
 ## Listen to new endpoints
 - Add the endpoint to `endpoints.csv` in the appropriate format.
