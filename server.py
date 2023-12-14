@@ -11,7 +11,7 @@ import bsky
 print("Starting server", file=sys.stderr)
 
 load_dotenv()
-os.environ['TZ'] = 'Europe/Stockholm'
+os.environ["TZ"] = "Europe/Stockholm"
 time.tzset()
 print(f"Timezone: {time.tzname}", file=sys.stderr)
 
@@ -21,9 +21,9 @@ print(f"Testing: {testing}", file=sys.stderr)
 # Login to Mastodon
 m = Mastodon(client_id="clientcred.secret")
 m.log_in(
-    os.getenv("mastodon_user"),
+    username=os.getenv("mastodon_user"),
     password=os.getenv("mastodon_password"),
-    to_file="usercred.secret"
+    to_file="usercred.secret",
 )
 m = Mastodon(access_token="usercred.secret")
 print("Login successful", file=sys.stderr)
@@ -31,6 +31,7 @@ print("Login successful", file=sys.stderr)
 # Login to OpenAI
 openai.organization = os.getenv("openai_org")
 openai.api_key = os.getenv("openai_secret")
+
 
 # Allow up to 3 retries
 def check_endpoint(endpoint):
@@ -49,7 +50,6 @@ def check_endpoint(endpoint):
 
 
 def toot(message, mode="alert"):
-
     if os.getenv("openai_enabled") == "true":
         # test if llama is up, otherwise use gpt-3
         try:
@@ -58,8 +58,10 @@ def toot(message, mode="alert"):
             if mode == "update":
                 sys_message = "You are the mastodon status bot for kthcloud, a cloud provider by students for students. Please rewrite the following message in a creative and funny way. Do not change the date. make sure to include the date"
 
-            res = requests.post("https://llama.app.cloud.cbh.kth.se/completion", json={
-                                "prompt": sys_message + "Message: \"" + message + "\"\n\n\nllama:"})
+            res = requests.post(
+                "https://llama.app.cloud.cbh.kth.se/completion",
+                json={"prompt": sys_message + 'Message: "' + message + '"\n\n\nllama:'},
+            )
             json = res.json()
             message = json["content"]
             print(f"llama: {message}", file=sys.stderr)
@@ -71,7 +73,7 @@ def toot(message, mode="alert"):
                 messages=[
                     {"role": "system", "content": sys_message},
                     {"role": "assistant", "content": message},
-                ]
+                ],
             )
 
             message = response["choices"][0]["message"]["content"]
@@ -102,10 +104,11 @@ def bio(down, endpoints):
 def get_last_summary():
     if os.path.exists("lastupdate"):
         with open("lastupdate", "r") as f:
-            last_summary = datetime.datetime.strptime(
-                f.read(), '%Y-%m-%d %H:%M:%S')
+            last_summary = datetime.datetime.strptime(f.read(), "%Y-%m-%d %H:%M:%S")
             print(
-                f"Last summary: {last_summary.strftime('%Y-%m-%d %H:%M:%S')}", file=sys.stderr)
+                f"Last summary: {last_summary.strftime('%Y-%m-%d %H:%M:%S')}",
+                file=sys.stderr,
+            )
     else:
         last_summary = datetime.datetime.now()
     return last_summary
@@ -121,11 +124,10 @@ def get_endpoints():
 
 
 def main():
-
     # import endpoints from endpoints.csv, skip header
     endpoints = get_endpoints()
 
-    print(f'Imported {len(endpoints)} endpoints', file=sys.stderr)
+    print(f"Imported {len(endpoints)} endpoints", file=sys.stderr)
 
     down = []
 
@@ -134,7 +136,7 @@ def main():
 
         # get current time
         now = datetime.datetime.now()
-        print(now.strftime('%Y-%m-%d %H:%M:%S'), file=sys.stderr)
+        print(now.strftime("%Y-%m-%d %H:%M:%S"), file=sys.stderr)
 
         # send summary if it's been 24 hours
         if (now - last_summary).total_seconds() > 86400:
@@ -142,15 +144,19 @@ def main():
             print("Sending summary", file=sys.stderr)
             if len(down) == 0:
                 toot(
-                    f"Summary as of {now.strftime('%Y-%m-%d')}. All endpoints up 🌞", mode="update")
-                
+                    f"Summary as of {now.strftime('%Y-%m-%d')}. All endpoints up 🌞",
+                    mode="update",
+                )
+
             else:
                 toot(
-                    f"Summary as of {now.strftime('%Y-%m-%d')}. {len(down)} endpoints down: {down}", mode="update")
+                    f"Summary as of {now.strftime('%Y-%m-%d')}. {len(down)} endpoints down: {down}",
+                    mode="update",
+                )
 
             # save last_summary to file
             with open("lastupdate", "w") as f:
-                f.write(last_summary.strftime('%Y-%m-%d %H:%M:%S'))
+                f.write(last_summary.strftime("%Y-%m-%d %H:%M:%S"))
 
         # check endpoints
         for endpoint in endpoints:
@@ -158,13 +164,15 @@ def main():
                 print(f"{endpoint[0]} is up", file=sys.stderr)
                 if endpoint[0] in down:
                     toot(
-                        f"{endpoint[1]} is back up as of {now.strftime('%Y-%m-%d %H:%M:%S')} 🛠️ {endpoint[0]}")
+                        f"{endpoint[1]} is back up as of {now.strftime('%Y-%m-%d %H:%M:%S')} 🛠️ {endpoint[0]}"
+                    )
                     down.remove(endpoint[0])
             else:
-                print(f"{endpoint[0]} is down", file=sys.stderr)
+                print(f"{endpoint[0]} is down",file=sys.stderr)
                 if endpoint[0] not in down:
                     toot(
-                        f"{endpoint[1]} is down as of {now.strftime('%Y-%m-%d %H:%M:%S')} 💔 {endpoint[0]}")
+                        f"{endpoint[1]} is down as of {now.strftime('%Y-%m-%d %H:%M:%S')} 💔 {endpoint[0]}"
+                    )
                     down.append(endpoint[0])
 
         print("sleeping...", file=sys.stderr)
