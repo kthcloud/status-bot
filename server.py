@@ -5,7 +5,8 @@ from dotenv import load_dotenv
 import datetime
 import time
 import sys
-import openai
+from openai import OpenAI
+
 import bsky
 
 print("Starting server", file=sys.stderr)
@@ -28,9 +29,11 @@ m.log_in(
 m = Mastodon(access_token="usercred.secret")
 print("Login successful", file=sys.stderr)
 
+
 # Login to OpenAI
-openai.organization = os.getenv("openai_org")
-openai.api_key = os.getenv("openai_secret")
+client = OpenAI(
+    api_key=os.getenv("openai_secret"), organization=os.getenv("openai_org")
+)
 
 
 # Allow up to 3 retries
@@ -68,7 +71,7 @@ def toot(message, mode="alert"):
         except:
             print("llama is down", file=sys.stderr)
             # Use openai to generate a toot based on the message
-            response = openai.ChatCompletion.create(
+            response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
                     {"role": "system", "content": sys_message},
@@ -168,7 +171,7 @@ def main():
                     )
                     down.remove(endpoint[0])
             else:
-                print(f"{endpoint[0]} is down",file=sys.stderr)
+                print(f"{endpoint[0]} is down", file=sys.stderr)
                 if endpoint[0] not in down:
                     toot(
                         f"{endpoint[1]} is down as of {now.strftime('%Y-%m-%d %H:%M:%S')} 💔 {endpoint[0]}"
