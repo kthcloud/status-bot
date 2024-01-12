@@ -53,39 +53,52 @@ def check_endpoint(endpoint):
 
 
 def toot(message, mode="alert"):
-    if os.getenv("openai_enabled") == "true":
-        # test if llama is up, otherwise use gpt-3
-        try:
-            # Use llama to generate a toot based on the message
-            sys_message = "You are the mastodon status bot for kthcloud, a cloud provider by students for students. Please rewrite the following message in a creative and funny way. make sure to include the link. Do not change the date. make sure to include the date."
-            if mode == "update":
-                sys_message = "You are the mastodon status bot for kthcloud, a cloud provider by students for students. Please rewrite the following message in a creative and funny way. Do not change the date. make sure to include the date"
+    try:
+        if os.getenv("openai_enabled") == "true":
+            # test if llama is up, otherwise use gpt-3
+            try:
+                # Use llama to generate a toot based on the message
+                sys_message = "You are the mastodon status bot for kthcloud, a cloud provider by students for students. Please rewrite the following message in a creative and funny way. make sure to include the link. Do not change the date. make sure to include the date."
+                if mode == "update":
+                    sys_message = "You are the mastodon status bot for kthcloud, a cloud provider by students for students. Please rewrite the following message in a creative and funny way. Do not change the date. make sure to include the date"
 
-            res = requests.post(
-                "https://llama.app.cloud.cbh.kth.se/completion",
-                json={"prompt": sys_message + 'Message: "' + message + '"\n\n\nllama:'},
-            )
-            json = res.json()
-            message = json["content"]
-            print(f"llama: {message}", file=sys.stderr)
-        except:
-            print("llama is down", file=sys.stderr)
-            # Use openai to generate a toot based on the message
-            response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": sys_message},
-                    {"role": "assistant", "content": message},
-                ],
-            )
+                res = requests.post(
+                    "https://llama.app.cloud.cbh.kth.se/completion",
+                    json={
+                        "prompt": sys_message + 'Message: "' + message + '"\n\n\nllama:'
+                    },
+                )
+                json = res.json()
+                message = json["content"]
+                print(f"llama: {message}", file=sys.stderr)
+            except Exception:
+                print("llama is down", file=sys.stderr)
+                # Use openai to generate a toot based on the message
+                response = client.chat.completions.create(
+                    model="gpt-3.5-turbo",
+                    messages=[
+                        {"role": "system", "content": sys_message},
+                        {"role": "assistant", "content": message},
+                    ],
+                )
 
-            message = response["choices"][0]["message"]["content"]
+                message = response.choices[0].message.content
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
+        # No genAI is fine, post the bare message
 
     if testing:
         print(message, file=sys.stderr)
     else:
-        m.toot(message)
-        bsky.toot(message)
+        try:
+            m.toot(message)
+        except Exception as e:
+            print("Mastodon error " + e, file=sys.stderr)
+
+        try:
+            bsky.toot(message)
+        except Exception as e:
+            print("Bsky error " + e, file=sys.stderr)
 
 
 def bio(down, endpoints):
