@@ -1,6 +1,7 @@
 endpoint, description
-https://cloud.cbh.kth.se, Landing page
-https://dashboard.cloud.cbh.kth.se, CloudStack dashboard
+https://cloud.cbh.kth.se/, Landing page
+https://docs.cloud.cbh.kth.se/, Documentation
+https://dashboard.cloud.cbh.kth.se, CloudStack
 https://k8s.cloud.cbh.kth.se, Internal services cluster
 https://k8s.prod.cloud.cbh.kth.se, Production cluster
 https://k8s.dev.cloud.cbh.kth.se, Dev cluster
@@ -8,5 +9,7 @@ https://iam.cloud.cbh.kth.se, kthcloud SSO
 https://dns.cloud.cbh.kth.se, kthcloud DNS server
 https://maas.cloud.cbh.kth.se, MAAS
 https://taiga.prod.cloud.cbh.kth.se, Taiga
-https://llama.app.cloud.cbh.kth.se/, llama2
 https://registry.cloud.cbh.kth.se/, Docker registry
+https://ai.cloud.cbh.kth.se, AI Tools Hub
+https://llama.app.cloud.cbh.kth.se/, Llama 2
+https://sd0.vm-app.cloud.cbh.kth.se/, Stable Diffusion
