@@ -1,5 +1,6 @@
 endpoint, description
-https://cloud.cbh.kth.se/, Landing page
+https://cloud.cbh.kth.se/, kthcloud console
+https://api.cloud.cbh.kth.se/deploy, kthcloud API
 https://docs.cloud.cbh.kth.se/, Documentation
 https://dashboard.cloud.cbh.kth.se, CloudStack
 https://k8s.cloud.cbh.kth.se, Internal services cluster
