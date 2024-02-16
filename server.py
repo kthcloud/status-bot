@@ -88,7 +88,7 @@ def toot(message, mode="alert"):
         # No genAI is fine, post the bare message
 
     # Remove any quotes, newlines, and double spaces
-    message = message.replace('"', "").replace("\n", " ").replace("  ", " ")
+    message = message.replace('"', "").replace("\n", " ").replace("  ", " ").strip()
 
     if testing:
         print(message, file=sys.stderr)
@@ -190,7 +190,7 @@ def main():
                 if endpoint[0] in down:
                     url = endpoint[0]
                     if endpoint[2] == "false":
-                        url = ""
+                        url = "https://cloud.cbh.kth.se"
                     toot(
                         f"{endpoint[1]} is back up as of {now.strftime('%Y-%m-%d %H:%M:%S')} 🛠️ {url}"
                     )
@@ -200,7 +200,7 @@ def main():
                 if endpoint[0] not in down:
                     url = endpoint[0]
                     if endpoint[2] == "false":
-                        url = ""
+                        url = "https://cloud.cbh.kth.se"
                     toot(
                         f"{endpoint[1]} is down as of {now.strftime('%Y-%m-%d %H:%M:%S')} 💔 {url}"
                     )
