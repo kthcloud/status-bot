@@ -139,7 +139,11 @@ def get_endpoints():
     endpoints = []
     with open("endpoints.csv", "r") as f:
         for line in f:
-            endpoints.append(line.strip().split(","))
+            # strip line, split by comma, strip each element, and append to endpoints
+            elements = line.strip().split(",")
+            elements = [x.strip() for x in elements]
+            endpoints.append(elements)
+
     endpoints = endpoints[1:]
     return endpoints
 
