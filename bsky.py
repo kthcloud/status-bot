@@ -9,11 +9,14 @@ load_dotenv()
 
 # code "borrowed" from https://atproto.com/blog/create-post
 
+
 def toot(message):
     resp = requests.post(
         "https://bsky.social/xrpc/com.atproto.server.createSession",
-        json={"identifier": os.getenv(
-            "bsky_user"), "password": os.getenv("bsky_password")},
+        json={
+            "identifier": os.getenv("bsky_user"),
+            "password": os.getenv("bsky_password"),
+        },
     )
     resp.raise_for_status()
     session = resp.json()

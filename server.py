@@ -87,16 +87,21 @@ def toot(message, mode="alert"):
         print(f"Error: {e}", file=sys.stderr)
         # No genAI is fine, post the bare message
 
+    # Remove any quotes, newlines, and double spaces
+    message = message.replace('"', "").replace("\n", " ").replace("  ", " ")
+
     if testing:
         print(message, file=sys.stderr)
     else:
         try:
-            m.toot(message)
+            # Limit to 500 characters
+            m.toot(message[:500])
         except Exception as e:
             print("Mastodon error " + e, file=sys.stderr)
 
         try:
-            bsky.toot(message)
+            # Limit to 300 characters
+            bsky.toot(message[:300])
         except Exception as e:
             print("Bsky error " + e, file=sys.stderr)
 
@@ -179,15 +184,21 @@ def main():
             if check_endpoint(endpoint):
                 print(f"{endpoint[0]} is up", file=sys.stderr)
                 if endpoint[0] in down:
+                    url = endpoint[0]
+                    if endpoint[2] == "false":
+                        url = ""
                     toot(
-                        f"{endpoint[1]} is back up as of {now.strftime('%Y-%m-%d %H:%M:%S')} 🛠️ {endpoint[0]}"
+                        f"{endpoint[1]} is back up as of {now.strftime('%Y-%m-%d %H:%M:%S')} 🛠️ {url}"
                     )
                     down.remove(endpoint[0])
             else:
                 print(f"{endpoint[0]} is down", file=sys.stderr)
                 if endpoint[0] not in down:
+                    url = endpoint[0]
+                    if endpoint[2] == "false":
+                        url = ""
                     toot(
-                        f"{endpoint[1]} is down as of {now.strftime('%Y-%m-%d %H:%M:%S')} 💔 {endpoint[0]}"
+                        f"{endpoint[1]} is down as of {now.strftime('%Y-%m-%d %H:%M:%S')} 💔 {url}"
                     )
                     down.append(endpoint[0])
 
