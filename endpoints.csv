@@ -2,7 +2,6 @@ endpoint, description, includeUrl
 https://cloud.cbh.kth.se/, kthcloud console, true
 https://api.cloud.cbh.kth.se/deploy, kthcloud API, false
 https://docs.cloud.cbh.kth.se/, Documentation, true
-https://dashboard.cloud.cbh.kth.se, CloudStack, false
 https://k8s.cloud.cbh.kth.se, Internal services cluster, false
 https://k8s.prod.cloud.cbh.kth.se, Production cluster, false
 https://k8s.dev.cloud.cbh.kth.se, Dev cluster, false
@@ -11,8 +10,5 @@ https://dns.cloud.cbh.kth.se, kthcloud DNS server, false
 https://maas.cloud.cbh.kth.se, MAAS, false
 https://taiga.prod.cloud.cbh.kth.se, Taiga, true
 https://registry.cloud.cbh.kth.se/, Docker registry, false
-https://ai.cloud.cbh.kth.se, AI Tools Hub, true
-https://llama.app.cloud.cbh.kth.se/, Llama 2, true
-https://sd0.vm-app.cloud.cbh.kth.se/, Stable Diffusion, true
 https://se-flem-probe.app.cloud.cbh.kth.se/, kthcloud Flemingsberg Deployments, false 
 https://se-kista-probe.app.kista.cloud/, kthcloud Kista Deployments, false
