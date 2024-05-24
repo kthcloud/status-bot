@@ -15,5 +15,6 @@ Mastodon & Bluesky status bot for kthcloud
 - Create a .env file with `env=test` and appropriate API keys (Mastodon credentials are in KTH social wiki)
 
 ## Deployment
+- You'll need Docker installed on the target machine
 - Ensure this is run outside kthcloud, otherwise it will be down aswell and cannot report outages.
 - Currently deployed on a Raspberry Pi by **pierrelf@kth.se**
