@@ -1,23 +1,35 @@
 import requests
-from mastodon import Mastodon
 import os
 from dotenv import load_dotenv
 import datetime
 import time
 import sys
 from openai import OpenAI
+import logging
 
 import bsky
+from mastodon import Mastodon
 
-print("Starting server", file=sys.stderr)
+# Inititalise the logger
+logger = logging.getLogger(__name__)
+logger.setLevel("INFO")
+console_handler = logging.StreamHandler()
+formatter = logging.Formatter("{asctime} - {levelname} - {message}", style="{", datefmt="%Y-%m-%d %H:%M")
+console_handler.setFormatter(formatter)
+logger.addHandler(console_handler)
+
+# print("Starting server", file=sys.stderr)
+logger.info("Starting server")
 
 load_dotenv()
 os.environ["TZ"] = "Europe/Stockholm"
 time.tzset()
-print(f"Timezone: {time.tzname}", file=sys.stderr)
+# print(f"Timezone: {time.tzname}", file=sys.stderr)
+logger.info(f"Timezone: {time.tzname}")
 
 testing = os.getenv("env") == "test"
-print(f"Testing: {testing}", file=sys.stderr)
+# print(f"Testing: {testing}", file=sys.stderr)
+logger.info(f"Testing: {testing}")
 
 # Login to Mastodon
 m = Mastodon(client_id="clientcred.secret")
@@ -27,8 +39,8 @@ m.log_in(
     to_file="usercred.secret",
 )
 m = Mastodon(access_token="usercred.secret")
-print("Login successful", file=sys.stderr)
-
+logger.info("Mastodon Login Successful")
+# print("Login successful", file=sys.stderr)
 
 # Login to OpenAI
 client = OpenAI(
@@ -48,17 +60,21 @@ def check_endpoint(endpoint):
             else:
                 tries += 1
         except:
+            logger.exception(f"Exception in endpoint check. Tries = {tries}")
             tries += 1
     return False
 
 
 def toot(message, mode="alert"):
+    """
+    Send a toot to kthcloud mastodon account.
+    """
     try:
         if os.getenv("openai_enabled") == "true":
             # test if llama is up, otherwise use gpt-3
+            # Use llama to generate a toot based on the message
+            sys_message = "You are the mastodon status bot for kthcloud, a cloud provider by students for students. Please rewrite the following message in a creative and funny way. make sure to include the link. Do not change the date. make sure to include the date."
             try:
-                # Use llama to generate a toot based on the message
-                sys_message = "You are the mastodon status bot for kthcloud, a cloud provider by students for students. Please rewrite the following message in a creative and funny way. make sure to include the link. Do not change the date. make sure to include the date."
                 if mode == "update":
                     sys_message = "You are the mastodon status bot for kthcloud, a cloud provider by students for students. Please rewrite the following message in a creative and funny way. Do not change the date. make sure to include the date"
 
@@ -71,8 +87,10 @@ def toot(message, mode="alert"):
                 json = res.json()
                 message = json["content"]
                 print(f"llama: {message}", file=sys.stderr)
+                logger.info(f"llama: {message}")
             except Exception:
-                print("llama is down", file=sys.stderr)
+                logger.exception("llama is down")
+                # print("llama is down", file=sys.stderr)
                 # Use openai to generate a toot based on the message
                 response = client.chat.completions.create(
                     model="gpt-3.5-turbo",
@@ -84,32 +102,35 @@ def toot(message, mode="alert"):
 
                 message = response.choices[0].message.content
     except Exception as e:
-        print(f"Error: {e}", file=sys.stderr)
+        logger.exception(f"Error: {e}")
+        # print(f"Error: {e}", file=sys.stderr)
         # No genAI is fine, post the bare message
 
     # Remove any quotes, newlines, and double spaces
     message = message.replace('"', "").replace("\n", " ").replace("  ", " ").strip()
 
     if testing:
-        print(message, file=sys.stderr)
+        logger.error(f"{message}")
+        # print(message, file=sys.stderr)
     else:
         try:
             # Limit to 500 characters
             m.toot(message[:500])
         except Exception as e:
-            print("Mastodon error " + e, file=sys.stderr)
-
+            logger.exception(f"Mastodon error {e}")
+            # print("Mastodon error " + e, file=sys.stderr)
         try:
             # Limit to 300 characters
             bsky.toot(message[:300])
         except Exception as e:
-            print("Bsky error " + e, file=sys.stderr)
+            logger.exception("Bsky error {e}")
+            # print("Bsky error " + e, file=sys.stderr)
 
 
 def bio(down, endpoints):
     bio_msg = "Stay informed on maintenance and outages of our free and open source cloud service, run by students.\nStatus:"
     down_msg = "🟢 All systems operational."
-    if len(down) > 0 and len(down) < 3:
+    if 0 < len(down) < 3:
         down_msg = "⚠️ Some services down: " + ", ".join(down)
     elif len(down) == len(endpoints):
         down_msg = "❌ Major outage. All services are currently down."
@@ -117,7 +138,8 @@ def bio(down, endpoints):
         down_msg = f"{len(down)} services are currently down."
 
     if testing:
-        print(f"UPDATING BIO:\n{bio_msg} {down_msg}", file=sys.stderr)
+        logger.debug(f"UPDATING BIO:\n{bio_msg} {down_msg}")
+        # print(f"UPDATING BIO:\n{bio_msg} {down_msg}", file=sys.stderr)
     else:
         m.account_update_credentials(note=f"{bio_msg} {down_msg}")
 
@@ -126,10 +148,11 @@ def get_last_summary():
     if os.path.exists("lastupdate"):
         with open("lastupdate", "r") as f:
             last_summary = datetime.datetime.strptime(f.read(), "%Y-%m-%d %H:%M:%S")
-            print(
-                f"Last summary: {last_summary.strftime('%Y-%m-%d %H:%M:%S')}",
-                file=sys.stderr,
-            )
+            logger.info(f"Last summary: {last_summary.strftime('%Y-%m-%d %H:%M:%S')}")
+            # print(
+            #     f"Last summary: {last_summary.strftime('%Y-%m-%d %H:%M:%S')}",
+            #     file=sys.stderr,
+            # )
     else:
         last_summary = datetime.datetime.now()
     return last_summary
@@ -152,7 +175,8 @@ def main():
     # import endpoints from endpoints.csv, skip header
     endpoints = get_endpoints()
 
-    print(f"Imported {len(endpoints)} endpoints", file=sys.stderr)
+    logger.info(f"Imported {len(endpoints)} endpoints")
+    # print(f"Imported {len(endpoints)} endpoints", file=sys.stderr)
 
     down = []
 
@@ -161,12 +185,14 @@ def main():
 
         # get current time
         now = datetime.datetime.now()
-        print(now.strftime("%Y-%m-%d %H:%M:%S"), file=sys.stderr)
+        logger.info({now.strftime("%Y-%m-%d %H:%M:%S")})
+        # print(now.strftime("%Y-%m-%d %H:%M:%S"), file=sys.stderr)
 
         # send summary if it's been 24 hours
         if (now - last_summary).total_seconds() > 86400:
             last_summary = now
-            print("Sending summary", file=sys.stderr)
+            logger.debug("Sending summary")
+            # print("Sending summary", file=sys.stderr)
             if len(down) == 0:
                 toot(
                     f"Summary as of {now.strftime('%Y-%m-%d')}. All endpoints up 🌞",
@@ -186,7 +212,8 @@ def main():
         # check endpoints
         for endpoint in endpoints:
             if check_endpoint(endpoint):
-                print(f"{endpoint[0]} is up", file=sys.stderr)
+                logger.info(f"{endpoint[0]} is up")
+                # print(f"{endpoint[0]} is up", file=sys.stderr)
                 if endpoint[0] in down:
                     url = endpoint[0]
                     if endpoint[2] == "false":
@@ -196,7 +223,8 @@ def main():
                     )
                     down.remove(endpoint[0])
             else:
-                print(f"{endpoint[0]} is down", file=sys.stderr)
+                # print(f"{endpoint[0]} is down", file=sys.stderr)
+                logger.info(f"{endpoint[0]} is down")
                 if endpoint[0] not in down:
                     url = endpoint[0]
                     if endpoint[2] == "false":
@@ -206,7 +234,8 @@ def main():
                     )
                     down.append(endpoint[0])
 
-        print("sleeping...", file=sys.stderr)
+        # print("sleeping...", file=sys.stderr)
+        logger.info("sleeping...")
 
         bio(down, endpoints)
 
