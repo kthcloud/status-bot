@@ -31,14 +31,17 @@ testing = os.getenv("env") == "test"
 # print(f"Testing: {testing}", file=sys.stderr)
 logger.info(f"Testing: {testing}")
 
+# Create Mastodon app
+
 # Login to Mastodon
-m = Mastodon(client_id="clientcred.secret")
+m = Mastodon(client_id="kthcloud_status_bot",client_secret=os.getenv("mastodon_client_secret"),api_base_url=os.getenv("mastodon_url"))
 m.log_in(
     username=os.getenv("mastodon_user"),
     password=os.getenv("mastodon_password"),
     to_file="usercred.secret",
 )
-m = Mastodon(access_token="usercred.secret")
+# m = Mastodon(access_token="usercred.secret")
+m = Mastodon(access_token=os.getenv("mastodon_access_token"))
 logger.info("Mastodon Login Successful")
 # print("Login successful", file=sys.stderr)
 
