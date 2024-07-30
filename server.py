@@ -3,7 +3,6 @@ import os
 from dotenv import load_dotenv
 import datetime
 import time
-import sys
 from openai import OpenAI
 import logging
 
@@ -14,44 +13,33 @@ from mastodon import Mastodon
 logger = logging.getLogger(__name__)
 logger.setLevel("INFO")
 console_handler = logging.StreamHandler()
-formatter = logging.Formatter("{asctime} - {levelname} - {message}", style="{", datefmt="%Y-%m-%d %H:%M")
+formatter = logging.Formatter(
+    "{asctime} - {levelname} - {message}", style="{", datefmt="%Y-%m-%d %H:%M")
 console_handler.setFormatter(formatter)
 logger.addHandler(console_handler)
 
-# print("Starting server", file=sys.stderr)
 logger.info("Starting server")
 
-load_dotenv()
+load_dotenv(override=True)
 os.environ["TZ"] = "Europe/Stockholm"
 time.tzset()
-# print(f"Timezone: {time.tzname}", file=sys.stderr)
 logger.info(f"Timezone: {time.tzname}")
 
 testing = os.getenv("env") == "test"
-# print(f"Testing: {testing}", file=sys.stderr)
 logger.info(f"Testing: {testing}")
 
-# Create Mastodon app
-
 # Login to Mastodon
-m = Mastodon(client_id="kthcloud_status_bot",client_secret=os.getenv("mastodon_client_secret"),api_base_url=os.getenv("mastodon_url"))
-m.log_in(
-    username=os.getenv("mastodon_user"),
-    password=os.getenv("mastodon_password"),
-    to_file="usercred.secret",
-)
-# m = Mastodon(access_token="usercred.secret")
-m = Mastodon(access_token=os.getenv("mastodon_access_token"))
+m = Mastodon(access_token=os.getenv("mastodon_access_token"),
+             api_base_url=os.getenv("mastodon_base_url"))
 logger.info("Mastodon Login Successful")
-# print("Login successful", file=sys.stderr)
 
 # Login to OpenAI
 client = OpenAI(
     api_key=os.getenv("openai_secret"), organization=os.getenv("openai_org")
 )
-
-
 # Allow up to 3 retries
+
+
 def check_endpoint(endpoint):
     tries = 0
     while tries < 5:
@@ -89,11 +77,9 @@ def toot(message, mode="alert"):
                 )
                 json = res.json()
                 message = json["content"]
-                print(f"llama: {message}", file=sys.stderr)
                 logger.info(f"llama: {message}")
             except Exception:
                 logger.exception("llama is down")
-                # print("llama is down", file=sys.stderr)
                 # Use openai to generate a toot based on the message
                 response = client.chat.completions.create(
                     model="gpt-3.5-turbo",
@@ -102,32 +88,28 @@ def toot(message, mode="alert"):
                         {"role": "assistant", "content": message},
                     ],
                 )
-
                 message = response.choices[0].message.content
     except Exception as e:
         logger.exception(f"Error: {e}")
-        # print(f"Error: {e}", file=sys.stderr)
         # No genAI is fine, post the bare message
 
     # Remove any quotes, newlines, and double spaces
-    message = message.replace('"', "").replace("\n", " ").replace("  ", " ").strip()
+    message = message.replace('"', "").replace(
+        "\n", " ").replace("  ", " ").strip()
 
     if testing:
         logger.error(f"{message}")
-        # print(message, file=sys.stderr)
     else:
         try:
             # Limit to 500 characters
             m.toot(message[:500])
         except Exception as e:
             logger.exception(f"Mastodon error {e}")
-            # print("Mastodon error " + e, file=sys.stderr)
         try:
             # Limit to 300 characters
             bsky.toot(message[:300])
         except Exception as e:
-            logger.exception("Bsky error {e}")
-            # print("Bsky error " + e, file=sys.stderr)
+            logger.exception(f"Bsky error {e}")
 
 
 def bio(down, endpoints):
@@ -142,7 +124,6 @@ def bio(down, endpoints):
 
     if testing:
         logger.debug(f"UPDATING BIO:\n{bio_msg} {down_msg}")
-        # print(f"UPDATING BIO:\n{bio_msg} {down_msg}", file=sys.stderr)
     else:
         m.account_update_credentials(note=f"{bio_msg} {down_msg}")
 
@@ -150,12 +131,10 @@ def bio(down, endpoints):
 def get_last_summary():
     if os.path.exists("lastupdate"):
         with open("lastupdate", "r") as f:
-            last_summary = datetime.datetime.strptime(f.read(), "%Y-%m-%d %H:%M:%S")
-            logger.info(f"Last summary: {last_summary.strftime('%Y-%m-%d %H:%M:%S')}")
-            # print(
-            #     f"Last summary: {last_summary.strftime('%Y-%m-%d %H:%M:%S')}",
-            #     file=sys.stderr,
-            # )
+            last_summary = datetime.datetime.strptime(
+                f.read(), "%Y-%m-%d %H:%M:%S")
+            logger.info(f"Last summary: {
+                        last_summary.strftime('%Y-%m-%d %H:%M:%S')}")
     else:
         last_summary = datetime.datetime.now()
     return last_summary
@@ -169,7 +148,6 @@ def get_endpoints():
             elements = line.strip().split(",")
             elements = [x.strip() for x in elements]
             endpoints.append(elements)
-
     endpoints = endpoints[1:]
     return endpoints
 
@@ -177,10 +155,7 @@ def get_endpoints():
 def main():
     # import endpoints from endpoints.csv, skip header
     endpoints = get_endpoints()
-
     logger.info(f"Imported {len(endpoints)} endpoints")
-    # print(f"Imported {len(endpoints)} endpoints", file=sys.stderr)
-
     down = []
 
     while True:
@@ -189,7 +164,6 @@ def main():
         # get current time
         now = datetime.datetime.now()
         logger.info({now.strftime("%Y-%m-%d %H:%M:%S")})
-        # print(now.strftime("%Y-%m-%d %H:%M:%S"), file=sys.stderr)
 
         # send summary if it's been 24 hours
         if (now - last_summary).total_seconds() > 86400:
@@ -198,13 +172,15 @@ def main():
             # print("Sending summary", file=sys.stderr)
             if len(down) == 0:
                 toot(
-                    f"Summary as of {now.strftime('%Y-%m-%d')}. All endpoints up 🌞",
+                    f"Summary as of {now.strftime(
+                        '%Y-%m-%d')}. All endpoints up 🌞",
                     mode="update",
                 )
 
             else:
                 toot(
-                    f"Summary as of {now.strftime('%Y-%m-%d')}. {len(down)} endpoints down: {down}",
+                    f"Summary as of {now.strftime(
+                        '%Y-%m-%d')}. {len(down)} endpoints down: {down}",
                     mode="update",
                 )
 
@@ -222,7 +198,8 @@ def main():
                     if endpoint[2] == "false":
                         url = "https://cloud.cbh.kth.se"
                     toot(
-                        f"{endpoint[1]} is back up as of {now.strftime('%Y-%m-%d %H:%M:%S')} 🛠️ {url}"
+                        f"{endpoint[1]} is back up as of {
+                            now.strftime('%Y-%m-%d %H:%M:%S')} 🛠️ {url}"
                     )
                     down.remove(endpoint[0])
             else:
@@ -233,11 +210,11 @@ def main():
                     if endpoint[2] == "false":
                         url = "https://cloud.cbh.kth.se"
                     toot(
-                        f"{endpoint[1]} is down as of {now.strftime('%Y-%m-%d %H:%M:%S')} 💔 {url}"
+                        f"{endpoint[1]} is down as of {
+                            now.strftime('%Y-%m-%d %H:%M:%S')} 💔 {url}"
                     )
                     down.append(endpoint[0])
 
-        # print("sleeping...", file=sys.stderr)
         logger.info("sleeping...")
 
         bio(down, endpoints)
