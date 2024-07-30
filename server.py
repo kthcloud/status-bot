@@ -13,8 +13,7 @@ from mastodon import Mastodon
 logger = logging.getLogger(__name__)
 logger.setLevel("INFO")
 console_handler = logging.StreamHandler()
-formatter = logging.Formatter(
-    "{asctime} - {levelname} - {message}", style="{", datefmt="%Y-%m-%d %H:%M")
+formatter = logging.Formatter("{asctime} - {levelname} - {message}", style="{", datefmt="%Y-%m-%d %H:%M")
 console_handler.setFormatter(formatter)
 logger.addHandler(console_handler)
 
@@ -29,16 +28,12 @@ testing = os.getenv("env") == "test"
 logger.info(f"Testing: {testing}")
 
 # Login to Mastodon
-m = Mastodon(access_token=os.getenv("mastodon_access_token"),
-             api_base_url=os.getenv("mastodon_base_url"))
+m = Mastodon(access_token=os.getenv("mastodon_access_token"),api_base_url=os.getenv("mastodon_base_url"))
 logger.info("Mastodon Login Successful")
 
 # Login to OpenAI
-client = OpenAI(
-    api_key=os.getenv("openai_secret"), organization=os.getenv("openai_org")
-)
+client = OpenAI(api_key=os.getenv("openai_secret"), organization=os.getenv("openai_org"))
 # Allow up to 3 retries
-
 
 def check_endpoint(endpoint):
     tries = 0
@@ -94,8 +89,7 @@ def toot(message, mode="alert"):
         # No genAI is fine, post the bare message
 
     # Remove any quotes, newlines, and double spaces
-    message = message.replace('"', "").replace(
-        "\n", " ").replace("  ", " ").strip()
+    message = message.replace('"', "").replace("\n", " ").replace("  ", " ").strip()
 
     if testing:
         logger.error(f"{message}")
@@ -131,10 +125,8 @@ def bio(down, endpoints):
 def get_last_summary():
     if os.path.exists("lastupdate"):
         with open("lastupdate", "r") as f:
-            last_summary = datetime.datetime.strptime(
-                f.read(), "%Y-%m-%d %H:%M:%S")
-            logger.info(f"Last summary: {
-                        last_summary.strftime('%Y-%m-%d %H:%M:%S')}")
+            last_summary = datetime.datetime.strptime(f.read(), "%Y-%m-%d %H:%M:%S")
+            logger.info(f"Last summary: {last_summary.strftime('%Y-%m-%d %H:%M:%S')}")
     else:
         last_summary = datetime.datetime.now()
     return last_summary
@@ -171,18 +163,9 @@ def main():
             logger.debug("Sending summary")
             # print("Sending summary", file=sys.stderr)
             if len(down) == 0:
-                toot(
-                    f"Summary as of {now.strftime(
-                        '%Y-%m-%d')}. All endpoints up 🌞",
-                    mode="update",
-                )
-
+                toot(f"Summary as of {now.strftime('%Y-%m-%d')}. All endpoints up 🌞",mode="update",)
             else:
-                toot(
-                    f"Summary as of {now.strftime(
-                        '%Y-%m-%d')}. {len(down)} endpoints down: {down}",
-                    mode="update",
-                )
+                toot(f"Summary as of {now.strftime('%Y-%m-%d')}. {len(down)} endpoints down: {down}",mode="update",)
 
             # save last_summary to file
             with open("lastupdate", "w") as f:
@@ -192,15 +175,11 @@ def main():
         for endpoint in endpoints:
             if check_endpoint(endpoint):
                 logger.info(f"{endpoint[0]} is up")
-                # print(f"{endpoint[0]} is up", file=sys.stderr)
                 if endpoint[0] in down:
                     url = endpoint[0]
                     if endpoint[2] == "false":
                         url = "https://cloud.cbh.kth.se"
-                    toot(
-                        f"{endpoint[1]} is back up as of {
-                            now.strftime('%Y-%m-%d %H:%M:%S')} 🛠️ {url}"
-                    )
+                    toot(f"{endpoint[1]} is back up as of {now.strftime('%Y-%m-%d %H:%M:%S')} 🛠️ {url}")
                     down.remove(endpoint[0])
             else:
                 # print(f"{endpoint[0]} is down", file=sys.stderr)
@@ -209,10 +188,7 @@ def main():
                     url = endpoint[0]
                     if endpoint[2] == "false":
                         url = "https://cloud.cbh.kth.se"
-                    toot(
-                        f"{endpoint[1]} is down as of {
-                            now.strftime('%Y-%m-%d %H:%M:%S')} 💔 {url}"
-                    )
+                    toot(f"{endpoint[1]} is down as of {now.strftime('%Y-%m-%d %H:%M:%S')} 💔 {url}")
                     down.append(endpoint[0])
 
         logger.info("sleeping...")
