@@ -12,9 +12,20 @@ Mastodon & Bluesky status bot for kthcloud
 ## Development
 - Local python3 installation
 - Install pip requirements `python3 -m pip install -r requirements.txt`
-- Create a .env file with `env=test` and appropriate API keys (Mastodon credentials are in KTH social wiki)
+- Create a .env file with and appropriate API keys (Mastodon credentials are in KTH secure store on Keypass). Following is content for .env file
 
+```
+mastodon_access_token=""
+mastodon_base_url="https://mastodon.social"
+
+bsky_user=""
+bsky_password=""
+
+openai_secret=""
+openai_org=""
+openai_enabled="false"
+```
 ## Deployment
 - You'll need Docker installed on the target machine
-- Ensure this is run outside kthcloud, otherwise it will be down aswell and cannot report outages.
-- Currently deployed on a Raspberry Pi by **pierrelf@kth.se**
+- Ensure this is run outside kthcloud, otherwise it will be down as well and cannot report outages.
+- Currently deployed on Linode by Harsha.
