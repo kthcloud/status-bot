@@ -6,3 +6,5 @@ https://iam.cloud.cbh.kth.se, kthcloud Single sign-on, false
 https://dns.cloud.cbh.kth.se, kthcloud DNS server, false
 https://maas.cloud.cbh.kth.se, MAAS, false
 https://registry.cloud.cbh.kth.se/, Docker registry, false
+https://se-flem-probe.app.cloud.cbh.kth.se/, kthcloud Flemingsberg Deployments, false 
+https://se-kista-probe.app.kista.cloud/, kthcloud Kista Deployments, false
