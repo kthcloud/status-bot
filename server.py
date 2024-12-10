@@ -102,6 +102,7 @@ def toot(message, mode="alert"):
         try:
             # Limit to 300 characters
             bsky.toot(message[:300])
+            logger.debug(message[:300])
         except Exception as e:
             logger.exception(f"Bsky error {e}")
 
