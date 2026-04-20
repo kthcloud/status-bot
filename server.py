@@ -24,7 +24,7 @@ os.environ["TZ"] = "Europe/Stockholm"
 time.tzset()
 logger.info(f"Timezone: {time.tzname}")
 
-testing = os.getenv("env") == "test"
+testing = os.getenv(".venv") == "test"
 logger.info(f"Testing: {testing}")
 
 # Login to Mastodon

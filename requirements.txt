@@ -2,3 +2,5 @@ Mastodon.py
 python-dotenv
 openai
 aiohttp
+
+requests

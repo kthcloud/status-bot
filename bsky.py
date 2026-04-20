@@ -4,11 +4,7 @@ from dotenv import load_dotenv
 import json
 from datetime import datetime, timezone
 
-
 load_dotenv()
-
-# code "borrowed" from https://atproto.com/blog/create-post
-
 
 def toot(message):
     resp = requests.post(

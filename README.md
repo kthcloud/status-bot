@@ -29,3 +29,6 @@ openai_enabled="false"
 - You'll need Docker installed on the target machine
 - Ensure this is run outside kthcloud, otherwise it will be down as well and cannot report outages.
 - Currently deployed on Linode by Harsha.
+
+## Reference
+- https://atproto.com/blog/create-post
